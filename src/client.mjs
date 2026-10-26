@@ -8,7 +8,7 @@ export function createClient({ key = process.env.USAGENTLEADS_API_KEY, baseUrl =
     if (name === 'unlock_records' && (args.confirmCreditSpend !== true || !args.idempotencyKey || !Number.isInteger(args.maxCredits) || args.maxCredits < 1)) throw new Error('Confirm the selection, maxCredits and a saved UUID idempotencyKey before spending');
     if (name === 'create_export') {
       if (!['agents', 'brokerages'].includes(args.kind)) throw new Error('Choose agents or brokerages');
-      const query = new URLSearchParams(Object.entries(args).filter(([key]) => ['kind', 'template', 'list'].includes(key)));
+      const query = new URLSearchParams(Object.entries(args).filter(([key]) => ['kind', 'template', 'list', 'q'].includes(key)));
       return { url: `${origin.origin}/api/v2/exports?${query}`, method: 'GET', authentication: 'Authorization: Bearer <your API key>', status: 'download_request_prepared' };
     }
     const operation = paths[name];

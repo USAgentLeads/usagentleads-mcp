@@ -219,6 +219,11 @@
             "instantly"
           ]
         },
+        "q": {
+          "type": "string",
+          "maxLength": 60,
+          "description": "Filter owned records by name or company."
+        },
         "list": {
           "type": "string",
           "format": "uuid"
