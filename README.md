@@ -1,6 +1,6 @@
 # USAgentLeads MCP
 
-The hosted endpoint is `https://www.usagentleads.com/api/mcp`. Growth and Pro include REST v3 and hosted MCP. The v3 backend is deployed; existing v2 calls remain supported.
+The hosted endpoint is `https://www.usagentleads.com/api/mcp`. Growth and Pro include REST v3 and hosted MCP. The v3 backend is deployed.
 
 Configure Streamable HTTP with an Authorization bearer header from a protected environment variable. OAuth is not included. Never put credentials in a URL or shared prompt.
 
@@ -20,7 +20,6 @@ Billable tools require max_credits, a saved UUID idempotency_key and confirm_cre
 
 Export download returns an authenticated URL without credentials. REST and hosted MCP share 60 requests/minute/account and monthly quotas. Results are recoverable for 30 days; cursors last 24 hours.
 
-Legacy tools remain available, including owned_records, unlock_records and create_export. Their v2 request contracts remain unchanged; legacy unlock remains Pro-only.
 
 Run `npm test` for offline client/protocol checks. The app's `bun scripts/generate-api-v3-docs.mjs` synchronizes tools.json with hosted MCP schemas.
 

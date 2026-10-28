@@ -8,11 +8,11 @@ test('stdio server initializes and advertises safe tool contracts without networ
   try {
     await client.connect(transport);
     const { tools } = await client.listTools();
-    assert.equal(tools.length, 23);
-    const unlock = tools.find(t => t.name === 'unlock_records');
-    assert.equal(unlock.annotations.destructiveHint, true);
-    assert(unlock.inputSchema.required.includes('confirmCreditSpend'));
-    const result = await client.callTool({name:'unlock_records',arguments:{kind:'agents'}});
+    assert.equal(tools.length, 16);
+    const search = tools.find(t => t.name === 'search_agents');
+    assert.equal(search.annotations.destructiveHint, true);
+    assert(search.inputSchema.required.includes('confirm_credit_spend'));
+    const result = await client.callTool({name:'search_agents',arguments:{max_credits:1}});
     assert.equal(result.isError, true);
   } finally { await client.close(); }
 });
