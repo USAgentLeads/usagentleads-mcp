@@ -1,20 +1,10 @@
-# usagentleads-mcp
+# USAgentLeads MCP
 
-Official USAgentLeads developer resources. Documentation: https://www.usagentleads.com/docs.
+The hosted endpoint is `https://www.usagentleads.com/api/mcp`. Growth and Pro include REST v3 and hosted MCP. The v3 backend is deployed; existing v2 calls remain supported.
 
-**Release status:** API v2 and hosted MCP are implemented for the next application release. The application deployment is intentionally pending UI review. Public documentation and clients do not imply that those endpoints are already live. Existing one-time purchases and legacy v1 access continue unchanged.
+Configure Streamable HTTP with an Authorization bearer header from a protected environment variable. OAuth is not included. Never put credentials in a URL or shared prompt.
 
-Never commit an API key or real contact data. Use synthetic records in examples and tests. API access requires Growth (read) or Pro (read, unlock, MCP). Legacy Pro API retains v1 access and gains v2 read access.
-
-Search and masked previews spend no record credits. One agent unlock costs one credit; a brokerage costs two. Unlocks share the dashboard balance. Reuse the same UUID idempotency key and identical payload after a timeout. Do not create another key until the prior outcome is resolved.
-
-Licensed under MIT. This license covers client code and documentation, not the licensed contact dataset.
-
-## Hosted transport
-
-Connect a Streamable HTTP client to `https://www.usagentleads.com/api/mcp`, with `Authorization: Bearer <API key>`. Pro is required. OAuth is not part of this release. Use a client that supports bearer headers; store the key outside version control.
-
-## Local stdio server
+For the local stdio bridge:
 
 ```sh
 npm ci
@@ -22,8 +12,16 @@ export USAGENTLEADS_API_KEY='your-key'
 npm start
 ```
 
-Configure your client to run `node /absolute/path/usagentleads-mcp/src/index.mjs` and supply the key through its environment. The bridge calls the REST API; REST plan restrictions are enforced on each request. Tools are defined in `tools.json`.
+Configure your client to launch `node /absolute/path/usagentleads-mcp/src/index.mjs` and provide the key through its environment.
 
-`unlock_records` requires approval for the selection and maximum credits, `confirmCreditSpend: true`, and a saved UUID idempotency key. Reuse the same key and payload on retries. Tool annotations are client hints, not proof of approval. `create_export` prepares a credential-free URL; downloading it with your bearer key generates the suppression-aware CSV and audit record.
+New audience-specific tools return contacts directly: search_agents, search_brokerages, lookup_agents and lookup_brokerages. Count/preview tools, get_account, get_usage, search_locations and get_request spend no record credits. create_contact_export queues new or owned records; export_status, export_download and cancel_export manage the job.
 
-Run `npm test` for offline safety checks.
+Billable tools require max_credits, a saved UUID idempotency_key and confirm_credit_spend:true. Obtain authorization for the selection and cap first. New agents cost 1 credit and brokerages 2; repeat ownership is free across dashboard, REST and MCP. A timeout is not permission to use a new key.
+
+Export download returns an authenticated URL without credentials. REST and hosted MCP share 60 requests/minute/account and monthly quotas. Results are recoverable for 30 days; cursors last 24 hours.
+
+Legacy tools remain available, including owned_records, unlock_records and create_export. Their v2 request contracts remain unchanged; legacy unlock remains Pro-only.
+
+Run `npm test` for offline client/protocol checks. The app's `bun scripts/generate-api-v3-docs.mjs` synchronizes tools.json with hosted MCP schemas.
+
+Documentation: https://www.usagentleads.com/docs. MIT covers client code, not the licensed dataset.

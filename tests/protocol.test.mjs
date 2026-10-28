@@ -8,7 +8,7 @@ test('stdio server initializes and advertises safe tool contracts without networ
   try {
     await client.connect(transport);
     const { tools } = await client.listTools();
-    assert.equal(tools.length, 7);
+    assert.equal(tools.length, 23);
     const unlock = tools.find(t => t.name === 'unlock_records');
     assert.equal(unlock.annotations.destructiveHint, true);
     assert(unlock.inputSchema.required.includes('confirmCreditSpend'));

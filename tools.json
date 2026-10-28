@@ -1,5 +1,999 @@
 [
   {
+    "name": "count_agents",
+    "description": "v3 agents/count: no record credits. Preview withholds contact fields. Requests still consume the shared rate limit and monthly quota.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "filters": {
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string"
+            },
+            "countyFips": {
+              "type": "string",
+              "pattern": "^\\d{5}$"
+            },
+            "city": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 60,
+              "pattern": "^[\\p{L}\\p{N} .'-]+$"
+            },
+            "zip": {
+              "type": "string",
+              "pattern": "^\\d{5}$"
+            },
+            "mustHave": {
+              "maxItems": 5,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "phone",
+                  "email",
+                  "address",
+                  "license",
+                  "fullAddress"
+                ]
+              }
+            },
+            "activeLicense": {
+              "type": "boolean"
+            },
+            "organization": {
+              "type": "string",
+              "maxLength": 60,
+              "pattern": "^[\\p{L}\\p{N} &'.,-]*$"
+            },
+            "orgType": {
+              "type": "string",
+              "enum": [
+                "brokerage",
+                "office",
+                "branch",
+                "team",
+                "other"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "exclude_owned": {
+          "default": false,
+          "type": "boolean"
+        },
+        "snapshot_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "pattern": "^[a-z0-9-]+$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "preview_agents",
+    "description": "v3 agents/preview: no record credits. Preview withholds contact fields. Requests still consume the shared rate limit and monthly quota.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "filters": {
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string"
+            },
+            "countyFips": {
+              "type": "string",
+              "pattern": "^\\d{5}$"
+            },
+            "city": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 60,
+              "pattern": "^[\\p{L}\\p{N} .'-]+$"
+            },
+            "zip": {
+              "type": "string",
+              "pattern": "^\\d{5}$"
+            },
+            "mustHave": {
+              "maxItems": 5,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "phone",
+                  "email",
+                  "address",
+                  "license",
+                  "fullAddress"
+                ]
+              }
+            },
+            "activeLicense": {
+              "type": "boolean"
+            },
+            "organization": {
+              "type": "string",
+              "maxLength": 60,
+              "pattern": "^[\\p{L}\\p{N} &'.,-]*$"
+            },
+            "orgType": {
+              "type": "string",
+              "enum": [
+                "brokerage",
+                "office",
+                "branch",
+                "team",
+                "other"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "exclude_owned": {
+          "default": false,
+          "type": "boolean"
+        },
+        "snapshot_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "limit": {
+          "default": 25,
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "cursor": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "search_agents",
+    "description": "v3 agents/search: returns contacts directly (exports prepare asynchronously). SPENDS CREDITS only for new records: 1/agent, 2/brokerage. Obtain approval for max_credits. Save and reuse the SAME idempotency_key and payload after a timeout. max_credits:0 permits owned records only.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "filters": {
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string"
+            },
+            "countyFips": {
+              "type": "string",
+              "pattern": "^\\d{5}$"
+            },
+            "city": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 60,
+              "pattern": "^[\\p{L}\\p{N} .'-]+$"
+            },
+            "zip": {
+              "type": "string",
+              "pattern": "^\\d{5}$"
+            },
+            "mustHave": {
+              "maxItems": 5,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "phone",
+                  "email",
+                  "address",
+                  "license",
+                  "fullAddress"
+                ]
+              }
+            },
+            "activeLicense": {
+              "type": "boolean"
+            },
+            "organization": {
+              "type": "string",
+              "maxLength": 60,
+              "pattern": "^[\\p{L}\\p{N} &'.,-]*$"
+            },
+            "orgType": {
+              "type": "string",
+              "enum": [
+                "brokerage",
+                "office",
+                "branch",
+                "team",
+                "other"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "exclude_owned": {
+          "default": false,
+          "type": "boolean"
+        },
+        "snapshot_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "limit": {
+          "default": 25,
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "cursor": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        },
+        "max_credits": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 200
+        },
+        "idempotency_key": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        },
+        "confirm_credit_spend": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "max_credits",
+        "idempotency_key",
+        "confirm_credit_spend"
+      ],
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "lookup_agents",
+    "description": "v3 agents/lookup: returns contacts directly (exports prepare asynchronously). SPENDS CREDITS only for new records: 1/agent, 2/brokerage. Obtain approval for max_credits. Save and reuse the SAME idempotency_key and payload after a timeout. max_credits:0 permits owned records only.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "ids": {
+          "minItems": 1,
+          "maxItems": 100,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "snapshot_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "max_credits": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 200
+        },
+        "idempotency_key": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        },
+        "confirm_credit_spend": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "ids",
+        "max_credits",
+        "idempotency_key",
+        "confirm_credit_spend"
+      ],
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "count_brokerages",
+    "description": "v3 brokerages/count: no record credits. Preview withholds contact fields. Requests still consume the shared rate limit and monthly quota.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "filters": {
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string"
+            },
+            "countyFips": {
+              "type": "string",
+              "pattern": "^\\d{5}$"
+            },
+            "city": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 60,
+              "pattern": "^[\\p{L}\\p{N} .'-]+$"
+            },
+            "zip": {
+              "type": "string",
+              "pattern": "^\\d{5}$"
+            },
+            "mustHave": {
+              "maxItems": 5,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "phone",
+                  "email",
+                  "address",
+                  "license",
+                  "fullAddress"
+                ]
+              }
+            },
+            "activeLicense": {
+              "type": "boolean"
+            },
+            "organization": {
+              "type": "string",
+              "maxLength": 60,
+              "pattern": "^[\\p{L}\\p{N} &'.,-]*$"
+            },
+            "orgType": {
+              "type": "string",
+              "enum": [
+                "brokerage",
+                "office",
+                "branch",
+                "team",
+                "other"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "exclude_owned": {
+          "default": false,
+          "type": "boolean"
+        },
+        "snapshot_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "pattern": "^[a-z0-9-]+$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "preview_brokerages",
+    "description": "v3 brokerages/preview: no record credits. Preview withholds contact fields. Requests still consume the shared rate limit and monthly quota.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "filters": {
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string"
+            },
+            "countyFips": {
+              "type": "string",
+              "pattern": "^\\d{5}$"
+            },
+            "city": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 60,
+              "pattern": "^[\\p{L}\\p{N} .'-]+$"
+            },
+            "zip": {
+              "type": "string",
+              "pattern": "^\\d{5}$"
+            },
+            "mustHave": {
+              "maxItems": 5,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "phone",
+                  "email",
+                  "address",
+                  "license",
+                  "fullAddress"
+                ]
+              }
+            },
+            "activeLicense": {
+              "type": "boolean"
+            },
+            "organization": {
+              "type": "string",
+              "maxLength": 60,
+              "pattern": "^[\\p{L}\\p{N} &'.,-]*$"
+            },
+            "orgType": {
+              "type": "string",
+              "enum": [
+                "brokerage",
+                "office",
+                "branch",
+                "team",
+                "other"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "exclude_owned": {
+          "default": false,
+          "type": "boolean"
+        },
+        "snapshot_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "limit": {
+          "default": 25,
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "cursor": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "search_brokerages",
+    "description": "v3 brokerages/search: returns contacts directly (exports prepare asynchronously). SPENDS CREDITS only for new records: 1/agent, 2/brokerage. Obtain approval for max_credits. Save and reuse the SAME idempotency_key and payload after a timeout. max_credits:0 permits owned records only.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "filters": {
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string"
+            },
+            "countyFips": {
+              "type": "string",
+              "pattern": "^\\d{5}$"
+            },
+            "city": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 60,
+              "pattern": "^[\\p{L}\\p{N} .'-]+$"
+            },
+            "zip": {
+              "type": "string",
+              "pattern": "^\\d{5}$"
+            },
+            "mustHave": {
+              "maxItems": 5,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "phone",
+                  "email",
+                  "address",
+                  "license",
+                  "fullAddress"
+                ]
+              }
+            },
+            "activeLicense": {
+              "type": "boolean"
+            },
+            "organization": {
+              "type": "string",
+              "maxLength": 60,
+              "pattern": "^[\\p{L}\\p{N} &'.,-]*$"
+            },
+            "orgType": {
+              "type": "string",
+              "enum": [
+                "brokerage",
+                "office",
+                "branch",
+                "team",
+                "other"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "exclude_owned": {
+          "default": false,
+          "type": "boolean"
+        },
+        "snapshot_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "limit": {
+          "default": 25,
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "cursor": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        },
+        "max_credits": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 200
+        },
+        "idempotency_key": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        },
+        "confirm_credit_spend": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "max_credits",
+        "idempotency_key",
+        "confirm_credit_spend"
+      ],
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "lookup_brokerages",
+    "description": "v3 brokerages/lookup: returns contacts directly (exports prepare asynchronously). SPENDS CREDITS only for new records: 1/agent, 2/brokerage. Obtain approval for max_credits. Save and reuse the SAME idempotency_key and payload after a timeout. max_credits:0 permits owned records only.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "ids": {
+          "minItems": 1,
+          "maxItems": 100,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "snapshot_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "max_credits": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 200
+        },
+        "idempotency_key": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        },
+        "confirm_credit_spend": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "ids",
+        "max_credits",
+        "idempotency_key",
+        "confirm_credit_spend"
+      ],
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "create_contact_export",
+    "description": "v3 exports: returns contacts directly (exports prepare asynchronously). SPENDS CREDITS only for new records: 1/agent, 2/brokerage. Obtain approval for max_credits. Save and reuse the SAME idempotency_key and payload after a timeout. max_credits:0 permits owned records only.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "filters": {
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string"
+            },
+            "countyFips": {
+              "type": "string",
+              "pattern": "^\\d{5}$"
+            },
+            "city": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 60,
+              "pattern": "^[\\p{L}\\p{N} .'-]+$"
+            },
+            "zip": {
+              "type": "string",
+              "pattern": "^\\d{5}$"
+            },
+            "mustHave": {
+              "maxItems": 5,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "phone",
+                  "email",
+                  "address",
+                  "license",
+                  "fullAddress"
+                ]
+              }
+            },
+            "activeLicense": {
+              "type": "boolean"
+            },
+            "organization": {
+              "type": "string",
+              "maxLength": 60,
+              "pattern": "^[\\p{L}\\p{N} &'.,-]*$"
+            },
+            "orgType": {
+              "type": "string",
+              "enum": [
+                "brokerage",
+                "office",
+                "branch",
+                "team",
+                "other"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "exclude_owned": {
+          "default": false,
+          "type": "boolean"
+        },
+        "snapshot_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "agents",
+            "brokerages"
+          ]
+        },
+        "ids": {
+          "minItems": 1,
+          "maxItems": 5000,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "limit": {
+          "default": 1000,
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5000
+        },
+        "max_credits": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000
+        },
+        "format": {
+          "default": "csv",
+          "type": "string",
+          "enum": [
+            "csv",
+            "json"
+          ]
+        },
+        "template": {
+          "default": "standard",
+          "type": "string",
+          "enum": [
+            "standard",
+            "hubspot",
+            "salesforce",
+            "follow_up_boss",
+            "apollo",
+            "instantly"
+          ]
+        },
+        "idempotency_key": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        },
+        "confirm_credit_spend": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "kind",
+        "max_credits",
+        "idempotency_key",
+        "confirm_credit_spend"
+      ],
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_account",
+    "description": "v3 account: no record credits. Preview withholds contact fields. Requests still consume the shared rate limit and monthly quota.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_usage",
+    "description": "v3 usage: no record credits. Preview withholds contact fields. Requests still consume the shared rate limit and monthly quota.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "get_request",
+    "description": "v3 requests: no record credits. Preview withholds contact fields. Requests still consume the shared rate limit and monthly quota.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "request_id": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        }
+      },
+      "required": [
+        "request_id"
+      ],
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "export_status",
+    "description": "v3 status: no record credits. Preview withholds contact fields. Requests still consume the shared rate limit and monthly quota.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "export_id": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        }
+      },
+      "required": [
+        "export_id"
+      ],
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "cancel_export",
+    "description": "v3 cancel: no record credits. Preview withholds contact fields. Requests still consume the shared rate limit and monthly quota.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "export_id": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        }
+      },
+      "required": [
+        "export_id"
+      ],
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "export_download",
+    "description": "v3 download: no record credits. Preview withholds contact fields. Requests still consume the shared rate limit and monthly quota.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "export_id": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        }
+      },
+      "required": [
+        "export_id"
+      ],
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "search_locations",
+    "description": "v3 locations: no record credits. Preview withholds contact fields. Requests still consume the shared rate limit and monthly quota.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "agents",
+            "brokerages"
+          ]
+        },
+        "q": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 60
+        },
+        "state": {
+          "type": "string",
+          "pattern": "^[A-Z]{2}$"
+        }
+      },
+      "required": [
+        "kind",
+        "q"
+      ],
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
     "name": "coverage",
     "description": "Get release date, catalog coverage and data limitations. No record credits spent.",
     "inputSchema": {
