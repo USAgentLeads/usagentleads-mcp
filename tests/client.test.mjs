@@ -38,3 +38,12 @@ test('v3 preserves retry guidance and performs no automatic paid retry',async()=
   await assert.rejects(client('lookup_agents',{ids:['a'],max_credits:1,idempotency_key:id,confirm_credit_spend:true}),/Retry-After: 60/);
   assert.equal(calls,1);
 });
+
+test('name lookup forwards narrowing filters and the original recovery key', async()=>{
+  let captured;
+  const client=createClient({key:'secret',fetchImpl:async(url,init)=>{captured={url,init};return Response.json({records:[]});}});
+  await client('lookup_agents',{name:'Jane Smith',filters:{state:'TX',mustHave:['fullAddress']},limit:5,max_credits:5,idempotency_key:id,confirm_credit_spend:true});
+  assert.equal(captured.url.pathname,'/api/v3/agents/lookup');
+  assert.equal(captured.init.headers['Idempotency-Key'],id);
+  assert.deepEqual(JSON.parse(captured.init.body),{name:'Jane Smith',filters:{state:'TX',mustHave:['fullAddress']},limit:5,max_credits:5});
+});

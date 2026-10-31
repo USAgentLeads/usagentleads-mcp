@@ -57,6 +57,20 @@
                 "team",
                 "other"
               ]
+            },
+            "name": {
+              "description": "Agent name or name fragment, 3–160 characters. Case-insensitive literal substring; no fuzzy matching or unique-identity guarantee.",
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 160,
+              "allOf": [
+                {
+                  "pattern": "[\\p{L}\\p{N}]"
+                },
+                {
+                  "pattern": "^[^\\u0000-\\u001f\\u007f]+$"
+                }
+              ]
             }
           },
           "additionalProperties": false
@@ -138,6 +152,20 @@
                 "branch",
                 "team",
                 "other"
+              ]
+            },
+            "name": {
+              "description": "Agent name or name fragment, 3–160 characters. Case-insensitive literal substring; no fuzzy matching or unique-identity guarantee.",
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 160,
+              "allOf": [
+                {
+                  "pattern": "[\\p{L}\\p{N}]"
+                },
+                {
+                  "pattern": "^[^\\u0000-\\u001f\\u007f]+$"
+                }
               ]
             }
           },
@@ -232,6 +260,20 @@
                 "team",
                 "other"
               ]
+            },
+            "name": {
+              "description": "Agent name or name fragment, 3–160 characters. Case-insensitive literal substring; no fuzzy matching or unique-identity guarantee.",
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 160,
+              "allOf": [
+                {
+                  "pattern": "[\\p{L}\\p{N}]"
+                },
+                {
+                  "pattern": "^[^\\u0000-\\u001f\\u007f]+$"
+                }
+              ]
             }
           },
           "additionalProperties": false
@@ -288,49 +330,166 @@
   },
   {
     "name": "lookup_agents",
-    "description": "v3 agents/lookup: returns contacts directly (exports prepare asynchronously). SPENDS CREDITS only for new records: 1/agent, 2/brokerage. Obtain approval for max_credits. Save and reuse the SAME idempotency_key and payload after a timeout. max_credits:0 permits owned records only.",
+    "description": "Look up existing IDs or a name with optional location/brokerage filters. Name results are candidates; preview_agents with filters.name before spending. v3 agents/lookup: returns contacts directly (exports prepare asynchronously). SPENDS CREDITS only for new records: 1/agent, 2/brokerage. Obtain approval for max_credits. Save and reuse the SAME idempotency_key and payload after a timeout. max_credits:0 permits owned records only.",
     "inputSchema": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
-      "type": "object",
-      "properties": {
-        "ids": {
-          "minItems": 1,
-          "maxItems": 100,
-          "type": "array",
-          "items": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 200
-          }
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "ids": {
+              "minItems": 1,
+              "maxItems": 100,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              }
+            },
+            "snapshot_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100,
+              "pattern": "^[a-z0-9-]+$"
+            },
+            "max_credits": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 200
+            },
+            "idempotency_key": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "confirm_credit_spend": {
+              "type": "boolean",
+              "const": true
+            }
+          },
+          "required": [
+            "ids",
+            "max_credits",
+            "idempotency_key",
+            "confirm_credit_spend"
+          ],
+          "additionalProperties": false
         },
-        "snapshot_id": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 100,
-          "pattern": "^[a-z0-9-]+$"
-        },
-        "max_credits": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 200
-        },
-        "idempotency_key": {
-          "type": "string",
-          "format": "uuid",
-          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-        },
-        "confirm_credit_spend": {
-          "type": "boolean",
-          "const": true
+        {
+          "type": "object",
+          "properties": {
+            "name": {
+              "description": "Agent name or name fragment, 3–160 characters. Case-insensitive literal substring; no fuzzy matching or unique-identity guarantee.",
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 160,
+              "allOf": [
+                {
+                  "pattern": "[\\p{L}\\p{N}]"
+                },
+                {
+                  "pattern": "^[^\\u0000-\\u001f\\u007f]+$"
+                }
+              ]
+            },
+            "filters": {
+              "type": "object",
+              "properties": {
+                "state": {
+                  "type": "string"
+                },
+                "countyFips": {
+                  "type": "string",
+                  "pattern": "^\\d{5}$"
+                },
+                "city": {
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 60,
+                  "pattern": "^[\\p{L}\\p{N} .'-]+$"
+                },
+                "zip": {
+                  "type": "string",
+                  "pattern": "^\\d{5}$"
+                },
+                "mustHave": {
+                  "maxItems": 5,
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "phone",
+                      "email",
+                      "address",
+                      "license",
+                      "fullAddress"
+                    ]
+                  }
+                },
+                "activeLicense": {
+                  "type": "boolean"
+                },
+                "organization": {
+                  "type": "string",
+                  "maxLength": 60,
+                  "pattern": "^[\\p{L}\\p{N} &'.,-]*$"
+                },
+                "orgType": {
+                  "type": "string",
+                  "enum": [
+                    "brokerage",
+                    "office",
+                    "branch",
+                    "team",
+                    "other"
+                  ]
+                }
+              },
+              "additionalProperties": false
+            },
+            "limit": {
+              "default": 25,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "cursor": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "snapshot_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100,
+              "pattern": "^[a-z0-9-]+$"
+            },
+            "max_credits": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 200
+            },
+            "idempotency_key": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "confirm_credit_spend": {
+              "type": "boolean",
+              "const": true
+            }
+          },
+          "required": [
+            "name",
+            "max_credits",
+            "idempotency_key",
+            "confirm_credit_spend"
+          ],
+          "additionalProperties": false
         }
-      },
-      "required": [
-        "ids",
-        "max_credits",
-        "idempotency_key",
-        "confirm_credit_spend"
       ],
-      "additionalProperties": false
+      "type": "object"
     },
     "annotations": {
       "readOnlyHint": false,
@@ -736,6 +895,20 @@
                 "branch",
                 "team",
                 "other"
+              ]
+            },
+            "name": {
+              "description": "Agent name or name fragment, 3–160 characters. Case-insensitive literal substring; no fuzzy matching or unique-identity guarantee.",
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 160,
+              "allOf": [
+                {
+                  "pattern": "[\\p{L}\\p{N}]"
+                },
+                {
+                  "pattern": "^[^\\u0000-\\u001f\\u007f]+$"
+                }
               ]
             }
           },

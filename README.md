@@ -16,6 +16,8 @@ Configure your client to launch `node /absolute/path/usagentleads-mcp/src/index.
 
 New audience-specific tools return contacts directly: search_agents, search_brokerages, lookup_agents and lookup_brokerages. Count/preview tools, get_account, get_usage, search_locations and get_request spend no record credits. create_contact_export queues new or owned records; export_status, export_download and cancel_export manage the job.
 
+`lookup_agents` accepts either `ids` or a `name` with optional `filters` (state, city, organization and contact availability), `limit` and `cursor`. Name matching is a case-insensitive literal substring and may return multiple candidates. Use `preview_agents` with `filters.name` to review IDs, city and brokerage before approving acquisition. `count_agents`, `search_agents` and agent exports also accept `filters.name`. Use `mustHave: ["fullAddress"]` to require a complete recorded business address. `lookup_brokerages` remains ID-only.
+
 Billable tools require max_credits, a saved UUID idempotency_key and confirm_credit_spend:true. Obtain authorization for the selection and cap first. New agents cost 1 credit and brokerages 2; repeat ownership is free across dashboard, REST and MCP. A timeout is not permission to use a new key.
 
 Export download returns an authenticated URL without credentials. REST and hosted MCP share 60 requests/minute/account and monthly quotas. Results are recoverable for 30 days; cursors last 24 hours.
